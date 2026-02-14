@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { marked } from "marked";
 
 const allowedFileTypes = ["html", "md"];
 
@@ -38,12 +39,13 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const contentType = fileExtension === "html" ? "text/html" : "text/markdown";
+  const raw = await upstream.text();
+  const html = fileExtension === "md" ? await marked(raw) : raw;
 
-  return new Response(await upstream.text(), {
+  return new Response(html, {
     status: 200,
     headers: {
-      "Content-Type": `${contentType}; charset=utf-8`,
+      "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "public, max-age=60",
     },
   });
