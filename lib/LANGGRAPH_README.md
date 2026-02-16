@@ -101,6 +101,27 @@ All functions are fully typed with TypeScript. The types include:
 Full API documentation available at:
 https://disastrous-doretta-next-voters-1be027c9.koyeb.app/docs
 
+## 📝 API Endpoint Structure
+
+The LangGraph API uses stateless run endpoints. The `assistant_id` is specified in the request body, not the URL path:
+
+```
+POST /runs/wait     # For synchronous invocations
+POST /runs/stream   # For streaming invocations
+```
+
+Example:
+```typescript
+// Correct endpoint structure
+const url = `${LANGGRAPH_API_URL}/runs/wait`;
+
+// The assistant_id is included in the request body
+const request = {
+  assistant_id: 'research_brief_agent',
+  input: { messages: [...] }
+};
+```
+
 ## 📝 Example: Streaming with React
 
 ```typescript

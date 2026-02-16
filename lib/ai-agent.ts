@@ -32,6 +32,16 @@ const GRAPH_IDS = {
   RESEARCH: 'research_agent',
 } as const;
 
+const assistantIdCache = new Map<string, string>();
+
+interface AssistantSearchResult {
+  assistant_id: string;
+  graph_id: string;
+  name?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 // ============================================================================
 // Utility Functions
 // ============================================================================
@@ -94,6 +104,98 @@ export function createSystemMessage(content: string): Message {
   };
 }
 
+/**
+ * Extracts the graph output from a run response.
+ * Tries `output`, then `result`, then `values` to handle different API response shapes.
+ */
+function extractRunOutput<T>(response: RunResponse<T>): T {
+  const maybeEnvelope = response as unknown as Partial<RunResponse<T>>;
+  const isRunEnvelope =
+    typeof maybeEnvelope === 'object' &&
+    maybeEnvelope !== null &&
+    ('run_id' in maybeEnvelope ||
+      'status' in maybeEnvelope ||
+      'output' in maybeEnvelope ||
+      'result' in maybeEnvelope ||
+      'values' in maybeEnvelope);
+
+  if (!isRunEnvelope) {
+    return response as unknown as T;
+  }
+
+  const output = maybeEnvelope.output ?? maybeEnvelope.result ?? maybeEnvelope.values;
+
+  if (output !== undefined && output !== null) {
+    return output;
+  }
+
+  throw new LangGraphError(
+    `Graph execution completed but no output was returned (run_id: ${maybeEnvelope.run_id ?? 'unknown'})`
+  );
+}
+
+/**
+ * Resolves a graph id/name to an assistant UUID.
+ * Falls back to the provided graph id if lookup fails so existing deployments keep working.
+ */
+async function resolveAssistantId(graphId: string, signal?: AbortSignal): Promise<string> {
+  const cached = assistantIdCache.get(graphId);
+  if (cached) {
+    return cached;
+  }
+
+  try {
+    const assistants = await makeRequest<AssistantSearchResult[]>(
+      '/assistants/search',
+      {
+        method: 'POST',
+        body: JSON.stringify({}),
+        signal,
+      }
+    );
+
+    const matches = assistants.filter((assistant) =>
+      assistant.graph_id === graphId || assistant.name === graphId
+    );
+
+    const match = matches
+      .sort((a, b) => {
+        const aTime = Date.parse(a.updated_at || a.created_at || '1970-01-01T00:00:00.000Z');
+        const bTime = Date.parse(b.updated_at || b.created_at || '1970-01-01T00:00:00.000Z');
+        return bTime - aTime;
+      })[0];
+
+    if (match?.assistant_id) {
+      assistantIdCache.set(graphId, match.assistant_id);
+      return match.assistant_id;
+    }
+  } catch (error) {
+    console.warn(`Failed to resolve assistant ID for ${graphId}:`, error);
+  }
+
+  return graphId;
+}
+
+function shouldRetryWithGraphId(error: unknown): boolean {
+  if (!(error instanceof LangGraphError)) {
+    return false;
+  }
+
+  return /failed to get assistant .* from database/i.test(error.message);
+}
+
+function shouldRetryTransientThreadError(error: unknown): boolean {
+  if (!(error instanceof LangGraphError)) {
+    return false;
+  }
+
+  return /failed to get thread .* from database|failed to insert thread/i.test(error.message);
+}
+
+async function delay(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // ============================================================================
 // Research Brief Agent Functions
 // ============================================================================
@@ -117,34 +219,53 @@ export async function invokeResearchBriefAgent(
   input: ResearchBriefAgentInput,
   options?: InvokeOptions
 ): Promise<ResearchBriefAgentState> {
-  const request: RunRequest<ResearchBriefAgentInput> = {
-    assistant_id: GRAPH_IDS.RESEARCH_BRIEF,
-    input,
-    stream_mode: ['values'],
-    config: {
-      recursion_limit: 50,
-      ...options?.config,
-    },
-  };
+  const graphId = GRAPH_IDS.RESEARCH_BRIEF;
+  let assistantId = await resolveAssistantId(graphId, options?.signal);
+  const maxAttempts = 3;
 
-  const response = await makeRequest<RunResponse<ResearchBriefAgentState>>(
-    '/runs/wait',
-    {
-      method: 'POST',
-      body: JSON.stringify(request),
-      signal: options?.signal,
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const request: RunRequest<ResearchBriefAgentInput> = {
+      assistant_id: assistantId,
+      input,
+      stream_mode: ['values'],
+      config: {
+        recursion_limit: 50,
+        ...options?.config,
+      },
+    };
+
+    try {
+      const response = await makeRequest<RunResponse<ResearchBriefAgentState> | ResearchBriefAgentState>(
+        `/runs/wait`,
+        {
+          method: 'POST',
+          body: JSON.stringify(request),
+          signal: options?.signal,
+        }
+      );
+
+      if ('status' in response && response.status === 'error') {
+        throw new LangGraphError(`Graph execution failed: ${response.error}`);
+      }
+
+      return extractRunOutput(response as RunResponse<ResearchBriefAgentState>);
+    } catch (error) {
+      if (attempt === 0 && shouldRetryWithGraphId(error) && assistantId !== graphId) {
+        assistantIdCache.delete(graphId);
+        assistantId = graphId;
+        continue;
+      }
+
+      if (attempt < maxAttempts - 1 && shouldRetryTransientThreadError(error)) {
+        await delay(200 * (attempt + 1));
+        continue;
+      }
+
+      throw error;
     }
-  );
-
-  if (response.status === 'error') {
-    throw new LangGraphError(`Graph execution failed: ${response.error}`);
   }
 
-  if (!response.output) {
-    throw new LangGraphError('Graph execution completed but no output was returned');
-  }
-
-  return response.output;
+  throw new LangGraphError('Graph execution failed after retry');
 }
 
 /**
@@ -169,8 +290,10 @@ export async function streamResearchBriefAgent(
   input: ResearchBriefAgentInput,
   options?: StreamOptions
 ): Promise<void> {
+  const assistantId = await resolveAssistantId(GRAPH_IDS.RESEARCH_BRIEF, options?.signal);
+
   const request: RunRequest<ResearchBriefAgentInput> = {
-    assistant_id: GRAPH_IDS.RESEARCH_BRIEF,
+    assistant_id: assistantId,
     input,
     stream_mode: ['values', 'updates'],
     config: {
@@ -268,34 +391,53 @@ export async function invokeResearchAgent(
   input: ResearchAgentInput,
   options?: InvokeOptions
 ): Promise<ResearchAgentState> {
-  const request: RunRequest<ResearchAgentInput> = {
-    assistant_id: GRAPH_IDS.RESEARCH,
-    input,
-    stream_mode: ['values'],
-    config: {
-      recursion_limit: 50,
-      ...options?.config,
-    },
-  };
+  const graphId = GRAPH_IDS.RESEARCH;
+  let assistantId = await resolveAssistantId(graphId, options?.signal);
+  const maxAttempts = 3;
 
-  const response = await makeRequest<RunResponse<ResearchAgentState>>(
-    '/runs/wait',
-    {
-      method: 'POST',
-      body: JSON.stringify(request),
-      signal: options?.signal,
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const request: RunRequest<ResearchAgentInput> = {
+      assistant_id: assistantId,
+      input,
+      stream_mode: ['values'],
+      config: {
+        recursion_limit: 50,
+        ...options?.config,
+      },
+    };
+
+    try {
+      const response = await makeRequest<RunResponse<ResearchAgentState> | ResearchAgentState>(
+        `/runs/wait`,
+        {
+          method: 'POST',
+          body: JSON.stringify(request),
+          signal: options?.signal,
+        }
+      );
+
+      if ('status' in response && response.status === 'error') {
+        throw new LangGraphError(`Graph execution failed: ${response.error}`);
+      }
+
+      return extractRunOutput(response as RunResponse<ResearchAgentState>);
+    } catch (error) {
+      if (attempt === 0 && shouldRetryWithGraphId(error) && assistantId !== graphId) {
+        assistantIdCache.delete(graphId);
+        assistantId = graphId;
+        continue;
+      }
+
+      if (attempt < maxAttempts - 1 && shouldRetryTransientThreadError(error)) {
+        await delay(200 * (attempt + 1));
+        continue;
+      }
+
+      throw error;
     }
-  );
-
-  if (response.status === 'error') {
-    throw new LangGraphError(`Graph execution failed: ${response.error}`);
   }
 
-  if (!response.output) {
-    throw new LangGraphError('Graph execution completed but no output was returned');
-  }
-
-  return response.output;
+  throw new LangGraphError('Graph execution failed after retry');
 }
 
 /**
@@ -320,8 +462,10 @@ export async function streamResearchAgent(
   input: ResearchAgentInput,
   options?: StreamOptions
 ): Promise<void> {
+  const assistantId = await resolveAssistantId(GRAPH_IDS.RESEARCH, options?.signal);
+
   const request: RunRequest<ResearchAgentInput> = {
-    assistant_id: GRAPH_IDS.RESEARCH,
+    assistant_id: assistantId,
     input,
     stream_mode: ['values', 'updates'],
     config: {
