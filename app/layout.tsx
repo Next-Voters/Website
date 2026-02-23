@@ -2,7 +2,6 @@ import { type Metadata } from 'next'
 import { Plus_Jakarta_Sans, Dancing_Script } from 'next/font/google'
 import './globals.css'
 import Root from '@/components/common/root'
-import { AuthProvider } from '@/wrappers/AuthProvider'
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -80,12 +79,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <AuthProvider>
     <html lang="en" className={`${plusJakartaSans.variable} ${dancingScript.variable}`}>
       <body className={`antialiased`}>
         <Root>{children}</Root>
       </body>
     </html>
-    </AuthProvider>
   )
 }
