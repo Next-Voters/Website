@@ -131,8 +131,8 @@ const FellowshipPage = () => {
             </div>
 
             {/* Card 2 */}
-            <div className="bg-white border border-gray-300 rounded-xl p-8 shadow-sm">
-              <h3 className="text-[20px] font-semibold text-gray-900 mb-4 font-plus-jakarta-sans">
+            <div className="bg-white border border-gray-300 rounded-xl p-5 sm:p-8 shadow-sm">
+              <h3 className="text-[18px] sm:text-[20px] font-semibold text-gray-900 mb-3 sm:mb-4 font-plus-jakarta-sans">
                 Lead real change in your community
               </h3>
               <p className="text-[14px] text-gray-700 leading-relaxed font-plus-jakarta-sans">
@@ -145,12 +145,12 @@ const FellowshipPage = () => {
         
 
         {/* Final CTA Section */}
-        <div className="max-w-[680px] mx-auto px-6 text-center pb-20">
-          <h2 className="text-[32px] font-semibold text-gray-900 mb-6 font-plus-jakarta-sans">
+        <div className="max-w-[680px] mx-auto px-4 sm:px-6 text-center pb-12 sm:pb-20">
+          <h2 className="text-[26px] sm:text-[32px] font-semibold text-gray-900 mb-4 sm:mb-6 font-plus-jakarta-sans">
             Let's strengthen democracy, together
           </h2>
           
-          <a href="https://tally.so/r/mD8ooX" target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3 text-[14px] text-gray-900 border border-gray-900 rounded-lg hover:bg-gray-50 transition-colors font-plus-jakarta-sans font-medium">
+          <a href="https://tally.so/r/mD8ooX" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center min-h-[48px] px-6 sm:px-8 py-3 text-[14px] text-gray-900 border border-gray-900 rounded-lg hover:bg-gray-50 transition-colors font-plus-jakarta-sans font-medium touch-manipulation">
             Apply Now - It's Free
           </a>
         </div>

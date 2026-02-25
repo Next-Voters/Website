@@ -1,30 +1,22 @@
-import { withAuth } from "@kinde-oss/kinde-auth-nextjs/middleware";
 import { protectedRegularRoutes } from "./data/protected-routes";
 import { NextResponse, NextRequest } from "next/server";
-import { isUserAuthenticatedAndHasAdminRole } from "./lib/auth";
 
 const isPathAdminMatch = (route: string) => {
-    return route.startsWith("/admin")
-}
+  return route.startsWith("/admin");
+};
 
 export default async function proxy(req: NextRequest) {
   const route = req.nextUrl.pathname;
-  if (isPathAdminMatch(route) && !(await isUserAuthenticatedAndHasAdminRole())) {
+
+  // Admin routes: redirect to home (auth removed - admin access disabled)
+  if (isPathAdminMatch(route)) {
     const homeURL = new URL("/", req.url);
     return NextResponse.redirect(homeURL);
   }
 
+  // Protected routes: pass through (auth removed)
   if (protectedRegularRoutes.includes(route)) {
-    // Check if Kinde environment variables are configured
-    const kindeSiteUrl = process.env.KINDE_SITE_URL;
-    const kindeIssuerUrl = process.env.KINDE_ISSUER_URL;
-    
-    // If Kinde is not configured, skip auth for development
-    if (!kindeSiteUrl || !kindeIssuerUrl) {
-      return NextResponse.next();
-    }
-    
-    return withAuth(req);
+    return NextResponse.next();
   }
 
   return NextResponse.next();

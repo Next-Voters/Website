@@ -1,3 +1,5 @@
+export type BlogCategory = "technology" | "civic-education" | "policy";
+
 export type BlogPost = {
   slug: string;
   title: string;
@@ -11,5 +13,6 @@ export type BlogPost = {
     name: string;
     url?: string;
   };
+  category: BlogCategory;
   keywords?: string[];
 };
