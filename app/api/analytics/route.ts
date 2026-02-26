@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { handleGetRequestCount, handleGetResponseCount } from "@/lib/analytics";
+import returnErrorResponse from "@/lib/error";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +14,6 @@ export const GET = async () => {
       responseCount,
     });
   } catch (error) {
-    console.error("[analytics] Failed to fetch counts:", error);
-    // Return zeros so the ticker always shows a number instead of "—"
-    return NextResponse.json({
-      requestCount: 0,
-      responseCount: 0,
-    });
+    return returnErrorResponse(error);
   }
 }
