@@ -1,6 +1,7 @@
 "use server"
 
-import { db } from "../db"
+import { sql } from "kysely";
+import { db } from "../db";
 
 const ensureChatCountRow = async () => {
     await db
@@ -12,29 +13,25 @@ const ensureChatCountRow = async () => {
         })
         .onConflict((oc) => oc.column("id").doNothing())
         .execute();
-}
+};
 
 export const handleIncrementResponse = async () => {
-    await ensureChatCountRow()
+    await ensureChatCountRow();
     await db
         .updateTable("chat_count")
-        .set(eb => ({
-            responses: eb('responses', '+', 2)
-        }))
-        .where('id', '=', 1) 
-        .execute()
-}
+        .set({ responses: sql`responses + 2` })
+        .where("id", "=", 1)
+        .execute();
+};
 
 export const handleIncrementRequest = async () => {
-    await ensureChatCountRow()
-    await db 
+    await ensureChatCountRow();
+    await db
         .updateTable("chat_count")
-        .set(eb => ({
-            requests: eb("requests", "+", 1)
-        }))
-        .where('id', '=', 1)
-        .execute()
-}
+        .set({ requests: sql`requests + 1` })
+        .where("id", "=", 1)
+        .execute();
+};
 
 export const handleGetResponseCount = async () => {
     await ensureChatCountRow()
