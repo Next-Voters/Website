@@ -5,16 +5,7 @@ import { useRouter } from "next/navigation";
 import PreferenceSelector from "@/components/preference-selector";
 import ClientMountWrapper from "@/components/client-mount-wrapper";
 
-export type AnalyticsCounts = {
-  requestCount: number;
-  responseCount: number;
-};
-
-type HomeContentProps = {
-  initialAnalytics: AnalyticsCounts | null;
-};
-
-export default function HomeContent({ initialAnalytics }: HomeContentProps) {
+export default function HomeContent() {
   const router = useRouter();
   const [message, setMessage] = useState("");
 
@@ -64,13 +55,8 @@ export default function HomeContent({ initialAnalytics }: HomeContentProps) {
                 </button>
               </div>
 
-                <div className="mt-4 flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-3 sm:gap-4">
-                <div className="flex-1 min-w-0">
+                <div className="mt-4">
                   <PreferenceSelector />
-                </div>
-                <div className="font-plus-jakarta-sans text-[12px] sm:text-[13px] text-gray-600 text-center xs:text-left shrink-0">
-                  <span className="font-semibold text-gray-900">{initialAnalytics?.responseCount ?? "—"}</span> answers provided so far
-                </div>
                 </div>
             </div>
 
