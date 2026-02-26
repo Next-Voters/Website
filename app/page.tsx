@@ -86,12 +86,16 @@ const Home = () => {
                 </button>
               </div>
 
+              {/* Answers ticker - always visible */}
+              <div className="mt-3 flex justify-center sm:justify-start">
+                <p className="font-plus-jakarta-sans text-[13px] sm:text-[14px] text-gray-600">
+                  <span className="font-semibold text-gray-900">{analytics?.responseCount ?? "—"}</span> answers provided so far
+                </p>
+              </div>
+
                 <div className="mt-4 flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-3 sm:gap-4">
                 <div className="flex-1 min-w-0">
                   <PreferenceSelector />
-                </div>
-                <div className="font-plus-jakarta-sans text-[12px] sm:text-[13px] text-gray-600 text-center xs:text-left shrink-0">
-                  <span className="font-semibold text-gray-900">{analytics?.responseCount ?? "—"}</span> answers provided so far
                 </div>
                 </div>
             </div>
