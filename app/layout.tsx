@@ -65,6 +65,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     siteName: 'Next Voters',
     url: 'https://nextvoters.com',
+    images: ['/logo/nextvoters.png'],
   },
 
   twitter: {
@@ -72,6 +73,7 @@ export const metadata: Metadata = {
     title: 'Next Voters | Civic Education & Policy Analysis',
     description:
       'Clear explanations of legislation and public policy for the next generation of voters. Free civic alerts.',
+    images: ['/logo/nextvoters.png'],
   },
 
   metadataBase: new URL('https://nextvoters.com'),
