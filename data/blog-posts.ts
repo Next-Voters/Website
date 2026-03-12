@@ -57,8 +57,8 @@ Both the judgement and score are then used to determine how to better system des
 ---
 
 *P.S. You can check out the [research paper here](https://arxiv.org/pdf/2303.16634).*`,
-    datePublished: "2025-02-24",
-    dateModified: "2025-02-24",
+    datePublished: "2026-02-24",
+    dateModified: "2026-02-24",
     author: { name: "Hemit Patel" },
     keywords: ["LLM", "evals", "G-Evals", "chain of thought", "evaluation", "AI"],
   },
@@ -75,9 +75,9 @@ Both the judgement and score are then used to determine how to better system des
 However, political affairs have a year-round impact on Americans, not just during election cycles. And unfortunately, the ability to follow all relevant news and legislation, prepare for upcoming changes, and represent beliefs to legislators has become a luxury afforded by few. For most students and working people, this level of engagement and representation is not possible. Thus, our Next Voters team is working to change this by bringing political affairs updates straight to your inboxes.
 
 Every day, we collect discussed or implemented legislation, and the statements of elected officials based on the topics that interest you. We then categorize it, summarize it, and deliver it straight to you as a newsletter so you can get a quick understanding of political affairs, or a more concrete understanding by opening the links to the exact sources. We've launched in NYC, Toronto, and San Diego, with more cities to come soon!`,
-    datePublished: "2025-02-25",
-    dateModified: "2025-02-25",
-    author: { name: "Next Voters Team" },
+    datePublished: "2026-03-12",
+    dateModified: "2026-03-12",
+    author: { name: "Danielle D." },
     keywords: ["newsletter", "political affairs", "legislation", "Next Voters Line", "NYC", "Toronto", "San Diego"],
   },
 ];
