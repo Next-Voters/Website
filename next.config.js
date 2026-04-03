@@ -26,6 +26,14 @@ const nextConfig = {
   // Minimal Turbopack config to avoid Turbopack vs webpack build error
   turbopack: {},
 
+  async rewrites() {
+    return [
+      { source: "/alerts", destination: "/next-voters-line" },
+      { source: "/alerts/interests", destination: "/next-voters-line/interests" },
+      { source: "/alerts/referral", destination: "/next-voters-line/referral" },
+    ];
+  },
+
   images: {
     domains: ["example.com"],
     formats: ["image/avif", "image/webp"],
