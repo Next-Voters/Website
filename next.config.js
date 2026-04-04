@@ -30,6 +30,7 @@ const nextConfig = {
     return [
       { source: "/alerts", destination: "/next-voters-line" },
       { source: "/alerts/interests", destination: "/next-voters-line/interests" },
+      { source: "/alerts/region", destination: "/next-voters-line/region" },
       { source: "/alerts/referral", destination: "/next-voters-line/referral" },
     ];
   },

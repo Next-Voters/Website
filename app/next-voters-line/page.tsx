@@ -28,20 +28,20 @@ export default function NextVotersLineLandingPage() {
 
     const trimmed = contact.trim();
     router.push(
-      `/next-voters-line/interests?contact=${encodeURIComponent(trimmed)}&type=${encodeURIComponent(
+      `/alerts/interests?contact=${encodeURIComponent(trimmed)}&type=${encodeURIComponent(
         preferredCommunication
       )}`
     );
   };
 
-  const progressPercent = 33;
+  const progressPercent = 25;
 
   return (
     <div className="w-full min-h-[calc(100vh-64px)] bg-page pb-24 sm:pb-20">
       <div className="w-full max-w-[980px] px-4 sm:px-6 pt-12 sm:pt-20 pb-28">
         <h1 className="text-[32px] xs:text-[40px] sm:text-[44px] md:text-[52px] font-bold text-gray-900 mb-6 sm:mb-10 font-plus-jakarta-sans leading-[1.05] tracking-tight">
           <span className="block">Get weekly executive updates</span>
-          <span className="block md:whitespace-nowrap">on NYC politics you care about</span>
+          <span className="block md:whitespace-nowrap">about your local politics</span>
         </h1>
 
         <p className="text-gray-900 font-plus-jakarta-sans leading-tight mb-10">

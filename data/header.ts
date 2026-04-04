@@ -16,7 +16,7 @@ const headerItems: HeaderItem[] = [{
 }, 
 {
     name: "Alerts",
-    href: "/civic-line"
+    href: "/alerts"
 },
 {
     name: "Mission",

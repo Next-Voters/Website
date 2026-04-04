@@ -215,7 +215,7 @@ export default function HomeContent() {
                 </div>
                 <div className="mt-6 sm:mt-8">
                   <a
-                    href="/next-voters-line"
+                    href="/alerts"
                     className="inline-flex items-center justify-center min-h-[48px] px-8 sm:px-10 py-3.5 sm:py-4 text-[16px] sm:text-[18px] font-bold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors font-plus-jakarta-sans shadow-sm touch-manipulation"
                   >
                     <strong>Subscribe to Alerts</strong>

@@ -3,7 +3,6 @@
 import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import topicOptions from '@/data/topic-options';
-import { handleSubscribe } from '@/server-actions/sub-to-civicline';
 import { PreferredCommunication } from '@/types/preferences';
 
 const MAX_TOPICS = 3;
@@ -19,13 +18,8 @@ function NextVotersLineInterestsInner() {
   }, [searchParams]);
 
   const [selected, setSelected] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const progressPercent = 66;
-  const referralUrl = useMemo(() => {
-    const referrer = encodeURIComponent(contact);
-    return `/next-voters-line/referral?referrer=${referrer}`;
-  }, [contact]);
+  const progressPercent = 50;
 
   const toggleTopic = (topic: string) => {
     setSelected((prev) => {
@@ -36,9 +30,9 @@ function NextVotersLineInterestsInner() {
     });
   };
 
-  const onFinish = async () => {
+  const onFinish = () => {
     if (!contact) {
-      router.push('/next-voters-line');
+      router.push('/alerts');
       return;
     }
     if (selected.length === 0) {
@@ -46,30 +40,12 @@ function NextVotersLineInterestsInner() {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      let result: { error?: string } | void;
-      try {
-        result = await handleSubscribe(contact, selected, preferredCommunication);
-      } catch (e) {
-        // Keep UX stable even if env/DB isn't configured locally.
-        const message = e instanceof Error ? e.message : 'Unknown error';
-        alert(`Could not save interests right now: ${message}`);
-        router.push(referralUrl);
-        return;
-      }
-
-      if (result?.error) {
-        // Don't block the flow if they're already subscribed.
-        alert(result.error);
-        router.push(referralUrl);
-        return;
-      }
-
-      router.push(referralUrl);
-    } finally {
-      setIsSubmitting(false);
-    }
+    const q = new URLSearchParams({
+      contact,
+      type: preferredCommunication,
+      topics: JSON.stringify(selected),
+    });
+    router.push(`/alerts/region?${q.toString()}`);
   };
 
   return (
@@ -116,10 +92,9 @@ function NextVotersLineInterestsInner() {
         <button
           type="button"
           onClick={onFinish}
-          disabled={isSubmitting}
-          className="inline-flex items-center justify-center px-10 py-3 text-[18px] font-bold text-white bg-[#E12D39] rounded-lg hover:bg-[#c92631] transition-colors font-plus-jakarta-sans disabled:opacity-60"
+          className="inline-flex items-center justify-center px-10 py-3 text-[18px] font-bold text-white bg-[#E12D39] rounded-lg hover:bg-[#c92631] transition-colors font-plus-jakarta-sans"
         >
-          {isSubmitting ? 'Saving…' : 'Finish Setup'}
+          Continue
         </button>
       </div>
 
