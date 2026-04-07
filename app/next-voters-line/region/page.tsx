@@ -3,8 +3,7 @@
 import { Suspense, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { handleSubscribe } from '@/server-actions/sub-to-civicline';
-import { PreferredCommunication } from '@/types/preferences';
+import { handleSubscribe } from '@/server-actions/sub-to-nextvoterslocal';
 
 const REGIONS = [
   { id: 'toronto', label: 'Toronto', imageSrc: '/regions/toronto.png' },
@@ -17,11 +16,6 @@ function RegionSelectionInner() {
   const searchParams = useSearchParams();
 
   const contact = useMemo(() => (searchParams.get('contact') ?? '').trim(), [searchParams]);
-  const preferredCommunication = useMemo<PreferredCommunication>(() => {
-    const type = (searchParams.get('type') ?? 'email').toLowerCase();
-    return type === 'sms' ? 'sms' : 'email';
-  }, [searchParams]);
-
   const topics = useMemo(() => {
     const raw = searchParams.get('topics');
     if (!raw) return [] as string[];
@@ -52,11 +46,14 @@ function RegionSelectionInner() {
       return;
     }
 
+    const region = REGIONS.find((r) => r.id === regionId);
+    const cityLabel = region?.label ?? regionId;
+
     setSubmittingId(regionId);
     try {
       let result: { error?: string } | void;
       try {
-        result = await handleSubscribe(contact, topics, preferredCommunication);
+        result = await handleSubscribe(contact, topics, cityLabel);
       } catch (e) {
         const message = e instanceof Error ? e.message : 'Unknown error';
         alert(`Could not save your signup right now: ${message}`);

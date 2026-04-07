@@ -4,8 +4,8 @@ import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import topicOptions from '@/data/topic-options';
 import { PreferredCommunication } from '@/types/preferences';
-
-const MAX_TOPICS = 3;
+import { useSubscription } from '@/hooks/use-subscription';
+import { UpgradePrompt } from '@/components/alerts/upgrade-prompt';
 
 function NextVotersLineInterestsInner() {
   const router = useRouter();
@@ -17,7 +17,11 @@ function NextVotersLineInterestsInner() {
     return type === 'sms' ? 'sms' : 'email';
   }, [searchParams]);
 
+  const { isPro, isAuthenticated, isLoading: subLoading } = useSubscription();
+  const MAX_TOPICS = isPro ? 3 : 1;
+
   const [selected, setSelected] = useState<string[]>([]);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const progressPercent = 50;
 
@@ -25,7 +29,10 @@ function NextVotersLineInterestsInner() {
     setSelected((prev) => {
       const exists = prev.includes(topic);
       if (exists) return prev.filter((t) => t !== topic);
-      if (prev.length >= MAX_TOPICS) return prev;
+      if (prev.length >= MAX_TOPICS) {
+        setShowUpgrade(true);
+        return prev;
+      }
       return [...prev, topic];
     });
   };
@@ -48,13 +55,17 @@ function NextVotersLineInterestsInner() {
     router.push(`/alerts/region?${q.toString()}`);
   };
 
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/alerts/interests';
+
   return (
     <div className="w-full min-h-[calc(100vh-64px)] bg-page pb-20">
       <div className="w-full max-w-[980px] px-6 pt-20 pb-28">
         <h1 className="text-[44px] sm:text-[52px] font-bold text-gray-900 mb-6 font-plus-jakarta-sans leading-[1.05] tracking-tight">
           You&apos;re almost done.
           <br />
-          Just select up to {MAX_TOPICS} interests.
+          {subLoading
+            ? 'Just select your interests.'
+            : `Just select up to ${MAX_TOPICS} interest${MAX_TOPICS === 1 ? '' : 's'}.`}
         </h1>
 
         <p className="text-[16px] sm:text-[18px] text-gray-900 font-plus-jakarta-sans font-semibold leading-tight mb-10">
@@ -73,14 +84,13 @@ function NextVotersLineInterestsInner() {
                 key={topic}
                 type="button"
                 onClick={() => toggleTopic(topic)}
-                disabled={isDisabled}
                 aria-pressed={isActive}
                 className={[
                   'px-8 py-3 rounded-lg border-2 font-plus-jakarta-sans font-semibold text-[16px] transition-colors',
                   isActive
                     ? 'border-gray-900 bg-gray-900 text-white'
                     : 'border-gray-900 bg-white text-gray-900 hover:bg-gray-50',
-                  isDisabled ? 'opacity-40 cursor-not-allowed hover:bg-white' : '',
+                  isDisabled && !isPro ? 'opacity-40 cursor-pointer' : '',
                 ].join(' ')}
               >
                 {topic}
@@ -88,6 +98,18 @@ function NextVotersLineInterestsInner() {
             );
           })}
         </div>
+
+        {!isPro && !subLoading && (
+          <p className="text-[13px] text-gray-500 font-plus-jakarta-sans mb-6">
+            Want all 3 topics?{' '}
+            <button
+              onClick={() => setShowUpgrade(true)}
+              className="text-[#E12D39] font-semibold hover:underline"
+            >
+              Upgrade to Pro
+            </button>
+          </p>
+        )}
 
         <button
           type="button"
@@ -98,7 +120,7 @@ function NextVotersLineInterestsInner() {
         </button>
       </div>
 
-      {/* Bottom progress bar (as in Figma) */}
+      {/* Bottom progress bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-page">
         <div className="w-full px-0">
           <div className="h-[5px] w-full bg-gray-200">
@@ -112,6 +134,13 @@ function NextVotersLineInterestsInner() {
           </div>
         </div>
       </div>
+
+      <UpgradePrompt
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        isAuthenticated={isAuthenticated}
+        redirectPath={currentPath}
+      />
     </div>
   );
 }
@@ -123,4 +152,3 @@ export default function NextVotersLineInterestsPage() {
     </Suspense>
   );
 }
-

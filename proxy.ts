@@ -1,5 +1,6 @@
 import { protectedRegularRoutes } from "./data/protected-routes";
 import { NextResponse, NextRequest } from "next/server";
+import { updateSession } from "./lib/supabase/middleware";
 
 const isPathAdminMatch = (route: string) => {
   return route.startsWith("/admin");
@@ -19,7 +20,8 @@ export default async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  return NextResponse.next();
+  // Refresh Supabase auth session on every request
+  return await updateSession(req);
 }
 
 export const config = {
