@@ -2,6 +2,8 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 
+type TopicRow = { supported_topics: { topic_name: string } | null }
+
 export async function getUserTopics(): Promise<string[]> {
   const supabase = await createSupabaseServerClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -15,7 +17,7 @@ export async function getUserTopics(): Promise<string[]> {
 
   if (!data) return []
 
-  return (data as Array<{ supported_topics: { topic_name: string } | null }>)
+  return (data as unknown as TopicRow[])
     .map((row) => row.supported_topics?.topic_name ?? "")
     .filter(Boolean)
     .map((name) => name.charAt(0).toUpperCase() + name.slice(1))
