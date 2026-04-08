@@ -3,6 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useSubscription } from '@/hooks/use-subscription';
+import { TierBadge } from '@/components/alerts/tier-badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import {
   Accordion,
   AccordionContent,
@@ -26,7 +34,7 @@ const CheckIcon = ({ color = '#6b7280' }: { color?: string }) => (
 const faqs = [
   {
     q: 'Can I cancel at any time?',
-    a: "Yes. Pro is month-to-month — no contracts, no fees. Cancel from your billing portal and you'll keep access until the end of your billing period.",
+    a: "Yes. Pro is month-to-month \u2014 no contracts, no fees. Cancel from your billing portal and you'll keep access until the end of your billing period.",
   },
   {
     q: 'What topics are covered?',
@@ -34,7 +42,7 @@ const faqs = [
   },
   {
     q: 'Is the content actually nonpartisan?',
-    a: "Yes. Our summaries are written and reviewed to avoid partisan framing. We explain what a policy does, who it affects, and what different perspectives say — without telling you what to think.",
+    a: "Yes. Our summaries are written and reviewed to avoid partisan framing. We explain what a policy does, who it affects, and what different perspectives say \u2014 without telling you what to think.",
   },
   {
     q: 'How do I upgrade if I already have an account?',
@@ -73,8 +81,11 @@ const valuePillars = [
 ];
 
 export default function PricingPage() {
-  const { isPro, isAuthenticated } = useSubscription();
+  const { isPro, isAuthenticated, tier } = useSubscription();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [canceledUntil, setCanceledUntil] = useState<string | null>(null);
 
   const handleUpgrade = async () => {
     if (!isAuthenticated) {
@@ -102,6 +113,20 @@ export default function PricingPage() {
     }
   };
 
+  const handleCancel = async () => {
+    setCancelLoading(true);
+    try {
+      const res = await fetch('/api/stripe/cancel', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setCanceledUntil(data.periodEnd);
+        setShowCancelDialog(false);
+      }
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-page">
 
@@ -119,7 +144,7 @@ export default function PricingPage() {
           <br className="hidden sm:block" /> No surprises.
         </h1>
         <p className="text-[16px] text-gray-500 leading-relaxed">
-          Start free — no credit card needed. Upgrade anytime to unlock
+          Start free \u2014 no credit card needed. Upgrade anytime to unlock
           full coverage across all three topics.
         </p>
       </section>
@@ -129,7 +154,14 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
           {/* Free */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-8 flex flex-col shadow-sm hover:border-gray-300 hover:shadow-md transition-all">
+          <div className="relative rounded-2xl border border-gray-200 bg-white p-8 flex flex-col shadow-sm hover:border-gray-300 hover:shadow-md transition-all">
+            {!isPro && tier === 'basic' && (
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                <span className="inline-flex items-center bg-gray-700 text-white text-[11px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow">
+                  Your Plan
+                </span>
+              </div>
+            )}
             <div className="mb-7">
               <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Free</p>
               <div className="flex items-baseline gap-1 mb-1">
@@ -161,11 +193,17 @@ export default function PricingPage() {
 
           {/* Pro */}
           <div className="relative rounded-2xl border-2 border-gray-950 bg-gray-950 p-8 flex flex-col shadow-lg">
-            {/* Most Popular badge */}
+            {/* Top badge */}
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-              <span className="inline-flex items-center bg-brand text-white text-[11px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow">
-                Most Popular
-              </span>
+              {isPro ? (
+                <span className="inline-flex items-center bg-brand text-white text-[11px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow">
+                  Your Plan
+                </span>
+              ) : (
+                <span className="inline-flex items-center bg-brand text-white text-[11px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow">
+                  Most Popular
+                </span>
+              )}
             </div>
 
             <div className="mb-7">
@@ -174,12 +212,12 @@ export default function PricingPage() {
                 <span className="text-[44px] font-bold text-white leading-none">$5</span>
                 <span className="text-[15px] text-gray-400">/&nbsp;mo</span>
               </div>
-              <p className="text-[13px] text-gray-500">billed monthly · cancel anytime</p>
+              <p className="text-[13px] text-gray-500">billed monthly \u00b7 cancel anytime</p>
             </div>
 
             <ul className="flex flex-col gap-3.5 mb-8 flex-1" aria-label="Pro plan features">
               {[
-                'All 3 topics — Immigration, Civil Rights, Economy',
+                'All 3 topics \u2014 Immigration, Civil Rights, Economy',
                 'Weekly civic alerts via email',
                 'Nonpartisan policy analysis',
                 'Cancel anytime, no questions asked',
@@ -192,27 +230,43 @@ export default function PricingPage() {
             </ul>
 
             {isPro ? (
-              <button
-                onClick={handlePortal}
-                disabled={checkoutLoading}
-                className="w-full px-6 py-3.5 text-[14.5px] font-bold text-gray-950 bg-white rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50"
-              >
-                {checkoutLoading ? 'Loading…' : 'Manage Subscription'}
-              </button>
+              <div className="flex flex-col gap-2">
+                {canceledUntil ? (
+                  <p className="text-center text-[13px] text-gray-400 py-2">
+                    Access until {new Date(canceledUntil).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </p>
+                ) : (
+                  <>
+                    <button
+                      onClick={handlePortal}
+                      disabled={checkoutLoading}
+                      className="w-full px-6 py-3.5 text-[14.5px] font-bold text-gray-950 bg-white rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50"
+                    >
+                      {checkoutLoading ? 'Loading\u2026' : 'Manage Subscription'}
+                    </button>
+                    <button
+                      onClick={() => setShowCancelDialog(true)}
+                      className="w-full px-6 py-2 text-[13px] font-medium text-gray-500 hover:text-gray-300 transition-colors"
+                    >
+                      Cancel subscription
+                    </button>
+                  </>
+                )}
+              </div>
             ) : (
               <button
                 onClick={handleUpgrade}
                 disabled={checkoutLoading}
                 className="w-full px-6 py-3.5 text-[14.5px] font-bold text-gray-950 bg-white rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50"
               >
-                {checkoutLoading ? 'Loading…' : 'Upgrade to Pro →'}
+                {checkoutLoading ? 'Loading\u2026' : 'Upgrade to Pro \u2192'}
               </button>
             )}
           </div>
         </div>
 
         <p className="text-center text-[12.5px] text-gray-400 mt-5">
-          Secure checkout via Stripe · No credit card required for free plan
+          Secure checkout via Stripe \u00b7 No credit card required for free plan
         </p>
       </section>
 
@@ -264,6 +318,35 @@ export default function PricingPage() {
           </a>
         </p>
       </section>
+
+      {/* Cancel confirmation dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent className="max-w-[360px]">
+          <DialogHeader>
+            <DialogTitle className="text-[18px] font-bold text-gray-950">
+              Cancel your subscription?
+            </DialogTitle>
+            <DialogDescription className="text-[14px] text-gray-500 mt-1 leading-relaxed">
+              You&apos;ll keep Pro access until the end of your current billing period. After that, your account will revert to the free plan.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2.5 mt-4">
+            <button
+              onClick={handleCancel}
+              disabled={cancelLoading}
+              className="w-full px-6 py-3 text-[14.5px] font-bold text-white bg-gray-900 rounded-xl hover:bg-gray-700 transition-colors disabled:opacity-60"
+            >
+              {cancelLoading ? 'Canceling\u2026' : 'Yes, cancel'}
+            </button>
+            <button
+              onClick={() => setShowCancelDialog(false)}
+              className="w-full px-6 py-3 text-[14px] font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+            >
+              Keep my subscription
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react';
 import { PreferredCommunication } from '@/types/preferences';
+import { useSubscription } from '@/hooks/use-subscription';
+import { ManageTopics } from '@/components/alerts/manage-topics';
 
 const STEPS = ['Email', 'Topics', 'Region', 'Done'];
 
-export default function NextVotersLineLandingPage() {
+function SignupWizard() {
   const router = useRouter();
   const [contact, setContact] = useState('');
 
@@ -123,4 +125,22 @@ export default function NextVotersLineLandingPage() {
       </div>
     </div>
   );
+}
+
+export default function NextVotersLineLandingPage() {
+  const { hasSubscription, isLoading } = useSubscription();
+
+  if (isLoading) {
+    return (
+      <div className="w-full min-h-[calc(100vh-56px)] bg-page flex items-center justify-center">
+        <p className="text-gray-400 text-[14px]">Loading…</p>
+      </div>
+    );
+  }
+
+  if (hasSubscription) {
+    return <ManageTopics />;
+  }
+
+  return <SignupWizard />;
 }

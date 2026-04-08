@@ -7,6 +7,8 @@ interface SubscriptionState {
   isPro: boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
+  hasSubscription: boolean;
+  tier: 'pro' | 'basic' | 'none';
 }
 
 export function useSubscription(): SubscriptionState {
@@ -14,6 +16,8 @@ export function useSubscription(): SubscriptionState {
     isPro: false,
     isAuthenticated: false,
     isLoading: true,
+    hasSubscription: false,
+    tier: 'none',
   });
 
   useEffect(() => {

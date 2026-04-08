@@ -6,6 +6,7 @@ import topicOptions from '@/data/topic-options';
 import { PreferredCommunication } from '@/types/preferences';
 import { useSubscription } from '@/hooks/use-subscription';
 import { UpgradePrompt } from '@/components/alerts/upgrade-prompt';
+import { TierBadge } from '@/components/alerts/tier-badge';
 import { Check } from 'lucide-react';
 
 function NextVotersLineInterestsInner() {
@@ -18,7 +19,7 @@ function NextVotersLineInterestsInner() {
     return type === 'sms' ? 'sms' : 'email';
   }, [searchParams]);
 
-  const { isPro, isAuthenticated, isLoading: subLoading } = useSubscription();
+  const { isPro, isAuthenticated, isLoading: subLoading, tier } = useSubscription();
   const MAX_TOPICS = isPro ? 3 : 1;
 
   const [selected, setSelected] = useState<string[]>([]);
@@ -49,9 +50,12 @@ function NextVotersLineInterestsInner() {
   return (
     <div className="w-full min-h-[calc(100vh-56px)] bg-page flex flex-col pb-20">
       <div className="flex-1 w-full max-w-[560px] mx-auto px-5 sm:px-6 pt-12 pb-8">
-        <h1 className="text-[30px] sm:text-[38px] font-bold text-gray-950 mb-3 leading-tight tracking-tight">
-          You&apos;re almost done.
-        </h1>
+        <div className="flex items-center gap-2.5 mb-3">
+          <h1 className="text-[30px] sm:text-[38px] font-bold text-gray-950 leading-tight tracking-tight">
+            You&apos;re almost done.
+          </h1>
+          {!subLoading && <TierBadge tier={tier} />}
+        </div>
         <p className="text-[15px] sm:text-[16px] text-gray-500 mb-8 leading-relaxed">
           {subLoading
             ? 'Select your interests below.'

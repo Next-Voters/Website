@@ -1,6 +1,8 @@
 "use client";
 
 import { useAuth } from "@/wrappers/AuthProvider";
+import { useSubscription } from "@/hooks/use-subscription";
+import { TierBadge } from "@/components/alerts/tier-badge";
 import Link from "next/link";
 
 interface AuthButtonsProps {
@@ -9,6 +11,7 @@ interface AuthButtonsProps {
 
 export default function AuthButtons({ variant = "desktop" }: AuthButtonsProps) {
   const { user, isLoading, signOut } = useAuth();
+  const { tier } = useSubscription();
 
   if (isLoading) return null;
 
@@ -33,6 +36,7 @@ export default function AuthButtons({ variant = "desktop" }: AuthButtonsProps) {
       <div className="w-7 h-7 rounded-full bg-gray-900 text-white flex items-center justify-center text-[12px] font-bold">
         {initial}
       </div>
+      <TierBadge tier={tier} />
       <button
         onClick={signOut}
         className="font-semibold text-[13.5px] text-gray-500 hover:text-gray-900 transition-colors"
