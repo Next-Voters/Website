@@ -16,7 +16,12 @@ export async function fulfillCheckout(sessionId: string): Promise<{ success: boo
     return { success: false, error: "Invalid session" }
   }
 
-  if (session.mode !== "subscription" || session.payment_status !== "paid") {
+  if (session.mode !== "subscription") {
+    return { success: false, error: "Session not completed" }
+  }
+
+  // Accept both "paid" (pro) and "no_payment_required" (free/basic) as valid
+  if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") {
     return { success: false, error: "Session not completed" }
   }
 
@@ -24,7 +29,6 @@ export async function fulfillCheckout(sessionId: string): Promise<{ success: boo
     return { success: false, error: "Session mismatch" }
   }
 
-  // Upsert: creates the row if the user upgraded before finishing the signup wizard
   const admin = createSupabaseAdminClient()
   const { error } = await admin
     .from("subscriptions")

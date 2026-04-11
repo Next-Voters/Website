@@ -94,7 +94,11 @@ export default function PricingPage() {
     }
     setCheckoutLoading(true);
     try {
-      const res = await fetch('/api/stripe/checkout', { method: 'POST' });
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: 'pro' }),
+      });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
     } catch {

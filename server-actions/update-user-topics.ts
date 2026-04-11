@@ -15,17 +15,19 @@ export async function updateUserTopics(topics: string[]): Promise<{ error?: stri
     .eq("contact", user.email)
     .maybeSingle()
 
-  if (!subscription) return { error: "No subscription found" }
+  if (!subscription?.stripe_subscription_id) return { error: "No subscription found" }
 
-  // Verify Pro status live with Stripe
+  // Determine tier by checking the Stripe subscription's price
   let isPro = false
-  if (subscription.stripe_subscription_id) {
-    try {
-      const stripeSub = await getStripe().subscriptions.retrieve(subscription.stripe_subscription_id)
-      isPro = stripeSub.status === 'active' || stripeSub.status === 'trialing'
-    } catch {
-      isPro = false
+  try {
+    const stripeSub = await getStripe().subscriptions.retrieve(subscription.stripe_subscription_id)
+    const isActive = stripeSub.status === 'active' || stripeSub.status === 'trialing'
+    if (isActive) {
+      const proPriceId = process.env.STRIPE_PRO_PRICE_ID
+      isPro = stripeSub.items.data.some((item) => item.price?.id === proPriceId)
     }
+  } catch {
+    isPro = false
   }
 
   const maxTopics = isPro ? 3 : 1

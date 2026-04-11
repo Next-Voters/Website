@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { CheckCircle2 } from 'lucide-react';
-import { subscribeBasic } from '@/server-actions/subscribe-basic';
 import { REGIONS } from '@/data/regions';
 
 const CheckIcon = ({ color = '#6b7280' }: { color?: string }) => (
@@ -19,46 +18,28 @@ const CheckIcon = ({ color = '#6b7280' }: { color?: string }) => (
   </svg>
 );
 
-interface SubscriptionCardsProps {
-  onSubscribed: () => void;
-}
-
-export function SubscriptionCards({ onSubscribed }: SubscriptionCardsProps) {
+export function SubscriptionCards() {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [basicLoading, setBasicLoading] = useState(false);
+  const [proLoading, setProLoading] = useState(false);
 
-  const handleBasic = async () => {
+  const handleCheckout = async (plan: 'basic' | 'pro') => {
     if (!selectedRegion) {
       alert('Please select a region first.');
       return;
     }
-    const region = REGIONS.find((r) => r.id === selectedRegion);
+    const setLoading = plan === 'basic' ? setBasicLoading : setProLoading;
     setLoading(true);
     try {
-      const result = await subscribeBasic(region?.label ?? selectedRegion);
-      if (result.error) {
-        alert(result.error);
-      } else {
-        onSubscribed();
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePro = async () => {
-    if (!selectedRegion) {
-      alert('Please select a region first.');
-      return;
-    }
-    setCheckoutLoading(true);
-    try {
-      const res = await fetch('/api/stripe/checkout', { method: 'POST' });
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
     } catch {
-      setCheckoutLoading(false);
+      setLoading(false);
     }
   };
 
@@ -139,11 +120,11 @@ export function SubscriptionCards({ onSubscribed }: SubscriptionCardsProps) {
             </ul>
             <button
               type="button"
-              onClick={handleBasic}
-              disabled={loading || !selectedRegion}
+              onClick={() => handleCheckout('basic')}
+              disabled={basicLoading || !selectedRegion}
               className="w-full text-center px-6 py-3.5 text-[14.5px] font-bold text-gray-700 border border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Setting up…' : 'Start for free'}
+              {basicLoading ? 'Loading…' : 'Start for free'}
             </button>
           </div>
 
@@ -177,11 +158,11 @@ export function SubscriptionCards({ onSubscribed }: SubscriptionCardsProps) {
             </ul>
             <button
               type="button"
-              onClick={handlePro}
-              disabled={checkoutLoading || !selectedRegion}
+              onClick={() => handleCheckout('pro')}
+              disabled={proLoading || !selectedRegion}
               className="w-full px-6 py-3.5 text-[14.5px] font-bold text-gray-950 bg-white rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50"
             >
-              {checkoutLoading ? 'Loading…' : 'Subscribe to Pro →'}
+              {proLoading ? 'Loading…' : 'Subscribe to Pro →'}
             </button>
           </div>
         </div>

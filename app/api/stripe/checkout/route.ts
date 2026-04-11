@@ -10,6 +10,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const body = await request.json().catch(() => ({}));
+  const plan = body.plan === 'pro' ? 'pro' : 'basic';
+
+  const priceId = plan === 'pro'
+    ? process.env.STRIPE_PRO_PRICE_ID!
+    : process.env.STRIPE_BASIC_PRICE_ID!;
+
   const origin = request.headers.get('origin') ?? 'http://localhost:3000';
 
   // Look up existing Stripe customer ID from subscriptions table
@@ -43,15 +50,15 @@ export async function POST(request: NextRequest) {
     customer: stripeCustomerId,
     line_items: [
       {
-        price: process.env.STRIPE_PRICE_ID!,
+        price: priceId,
         quantity: 1,
       },
     ],
     success_url: `${origin}/local?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/local?checkout=cancel`,
-    metadata: { contact: user.email },
+    metadata: { contact: user.email, plan },
     subscription_data: {
-      metadata: { contact: user.email },
+      metadata: { contact: user.email, plan },
     },
   });
 

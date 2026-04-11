@@ -10,7 +10,7 @@ import { SubscriptionDashboard } from '@/components/local/subscription-dashboard
 function NVLocalInner() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
-  const { hasSubscription, isLoading: subLoading, refetch } = useSubscription();
+  const { hasSubscription, isLoading: subLoading } = useSubscription();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -29,7 +29,7 @@ function NVLocalInner() {
   if (!user) return null;
 
   if (!hasSubscription) {
-    return <SubscriptionCards onSubscribed={refetch} />;
+    return <SubscriptionCards />;
   }
 
   return <SubscriptionDashboard />;

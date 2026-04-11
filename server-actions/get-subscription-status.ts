@@ -23,19 +23,24 @@ export async function getSubscriptionStatus(): Promise<{
     .maybeSingle()
 
   // No row at all — never signed up
-  if (data === null) {
+  if (!data?.stripe_subscription_id) {
     return { isPro: false, isAuthenticated: true, hasSubscription: false, tier: 'none' }
   }
 
-  // Row exists but no Stripe subscription — free/basic tier
-  if (!data.stripe_subscription_id) {
-    return { isPro: false, isAuthenticated: true, hasSubscription: true, tier: 'basic' }
-  }
-
-  // Verify live status directly with Stripe
+  // Verify live status and determine tier from Stripe
   try {
     const stripeSub = await getStripe().subscriptions.retrieve(data.stripe_subscription_id)
-    const isPro = stripeSub.status === 'active' || stripeSub.status === 'trialing'
+    const isActive = stripeSub.status === 'active' || stripeSub.status === 'trialing'
+
+    if (!isActive) {
+      return { isPro: false, isAuthenticated: true, hasSubscription: true, tier: 'none' }
+    }
+
+    // Determine tier by checking the subscription's price against env vars
+    const proPriceId = process.env.STRIPE_PRO_PRICE_ID
+    const items = stripeSub.items?.data ?? []
+    const isPro = items.some((item) => item.price?.id === proPriceId)
+
     return {
       isPro,
       isAuthenticated: true,
@@ -43,6 +48,6 @@ export async function getSubscriptionStatus(): Promise<{
       tier: isPro ? 'pro' : 'basic',
     }
   } catch {
-    return { isPro: false, isAuthenticated: true, hasSubscription: true, tier: 'basic' }
+    return { isPro: false, isAuthenticated: true, hasSubscription: true, tier: 'none' }
   }
 }
