@@ -64,13 +64,8 @@ export async function POST(request: NextRequest) {
       if (!contact) break;
 
       await supabase
-        .from('subscription_topics')
-        .delete()
-        .eq('subscription_id', contact);
-
-      await supabase
         .from('subscriptions')
-        .delete()
+        .update({ stripe_status: 'canceled' })
         .eq('contact', contact);
       break;
     }
