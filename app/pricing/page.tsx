@@ -1,16 +1,4 @@
-'use client';
-
-import { useState } from 'react';
 import Link from 'next/link';
-import { useSubscription } from '@/hooks/use-subscription';
-import { TierBadge } from '@/components/local/tier-badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
 import {
   Accordion,
   AccordionContent,
@@ -38,15 +26,15 @@ const faqs = [
   },
   {
     q: 'What topics are covered?',
-    a: 'Next Voters currently covers Immigration, Civil Rights, and the Economy. Free users choose one topic; Pro users receive weekly alerts on all three.',
+    a: 'Next Voters currently covers Immigration, Civil Rights, and the Economy. Free users choose one topic; Pro users receive weekly updates on all three.',
   },
   {
     q: 'Is the content actually nonpartisan?',
     a: "Yes. Our summaries are written and reviewed to avoid partisan framing. We explain what a policy does, who it affects, and what different perspectives say \u2014 without telling you what to think.",
   },
   {
-    q: 'How do I upgrade if I already have an account?',
-    a: 'Click "Upgrade to Pro" above. You\'ll be taken to a secure Stripe checkout. Your subscription activates immediately after payment.',
+    q: 'How do I manage my subscription?',
+    a: 'Head to the Local page to manage your plan, topics, and billing.',
   },
 ];
 
@@ -66,7 +54,7 @@ const valuePillars = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
       </svg>
     ),
-    label: 'Weekly alerts',
+    label: 'Weekly updates',
     desc: 'Delivered to your inbox every week. Never miss a bill.',
   },
   {
@@ -81,80 +69,17 @@ const valuePillars = [
 ];
 
 export default function PricingPage() {
-  const { isPro, isAuthenticated, tier } = useSubscription();
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [cancelLoading, setCancelLoading] = useState(false);
-  const [canceledUntil, setCanceledUntil] = useState<string | null>(null);
-
-  const handleUpgrade = async () => {
-    if (!isAuthenticated) {
-      window.location.href = '/login?redirectTo=/pricing';
-      return;
-    }
-    setCheckoutLoading(true);
-    try {
-      // If user already has a subscription, upgrade in-place; otherwise redirect to /local
-      if (tier !== 'none') {
-        const res = await fetch('/api/stripe/upgrade', { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-          window.location.href = '/local';
-        } else {
-          alert(data.error ?? 'Failed to upgrade');
-          setCheckoutLoading(false);
-        }
-      } else {
-        window.location.href = '/local';
-      }
-    } catch {
-      setCheckoutLoading(false);
-    }
-  };
-
-  const handlePortal = async () => {
-    setCheckoutLoading(true);
-    try {
-      const res = await fetch('/api/stripe/portal', { method: 'POST' });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-    } catch {
-      setCheckoutLoading(false);
-    }
-  };
-
-  const handleCancel = async () => {
-    setCancelLoading(true);
-    try {
-      const res = await fetch('/api/stripe/cancel', { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        setCanceledUntil(data.periodEnd);
-        setShowCancelDialog(false);
-      }
-    } finally {
-      setCancelLoading(false);
-    }
-  };
-
   return (
     <div className="w-full min-h-screen bg-page">
 
       {/* Hero */}
       <section className="px-5 pt-20 pb-12 text-center max-w-[640px] mx-auto">
-        <div className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-3.5 py-1.5 mb-7 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-brand shrink-0" />
-          <span className="text-[12.5px] font-semibold text-gray-600 tracking-wide">
-            Civic education, made simple
-          </span>
-        </div>
-
         <h1 className="text-[40px] sm:text-[52px] font-bold text-gray-950 leading-[1.05] tracking-tight mb-4">
           Simple pricing.
           <br className="hidden sm:block" /> No surprises.
         </h1>
         <p className="text-[16px] text-gray-500 leading-relaxed">
-          Start free \u2014 no credit card needed. Upgrade anytime to unlock
+          Start free &mdash; no credit card needed. Upgrade anytime to unlock
           full coverage across all three topics.
         </p>
       </section>
@@ -164,14 +89,7 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
           {/* Free */}
-          <div className="relative rounded-2xl border border-gray-200 bg-white p-8 flex flex-col shadow-sm hover:border-gray-300 hover:shadow-md transition-all">
-            {!isPro && tier === 'basic' && (
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span className="inline-flex items-center bg-gray-700 text-white text-[11px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow">
-                  Your Plan
-                </span>
-              </div>
-            )}
+          <div className="rounded-2xl border border-gray-200 bg-white p-8 flex flex-col shadow-sm hover:border-gray-300 hover:shadow-md transition-all">
             <div className="mb-7">
               <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Free</p>
               <div className="flex items-baseline gap-1 mb-1">
@@ -183,7 +101,7 @@ export default function PricingPage() {
             <ul className="flex flex-col gap-3.5 mb-8 flex-1" aria-label="Free plan features">
               {[
                 '1 topic of your choice',
-                'Weekly civic alerts via email',
+                'Weekly civic updates via email',
                 'Nonpartisan policy analysis',
               ].map((f) => (
                 <li key={f} className="flex items-start gap-3">
@@ -197,23 +115,16 @@ export default function PricingPage() {
               href="/local"
               className="w-full text-center px-6 py-3.5 text-[14.5px] font-bold text-gray-700 border border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-colors"
             >
-              Get started free
+              Get started
             </Link>
           </div>
 
           {/* Pro */}
           <div className="relative rounded-2xl border-2 border-gray-950 bg-gray-950 p-8 flex flex-col shadow-lg">
-            {/* Top badge */}
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-              {isPro ? (
-                <span className="inline-flex items-center bg-brand text-white text-[11px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow">
-                  Your Plan
-                </span>
-              ) : (
-                <span className="inline-flex items-center bg-brand text-white text-[11px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow">
-                  Most Popular
-                </span>
-              )}
+              <span className="inline-flex items-center bg-brand text-white text-[11px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow">
+                Most Popular
+              </span>
             </div>
 
             <div className="mb-7">
@@ -222,13 +133,13 @@ export default function PricingPage() {
                 <span className="text-[44px] font-bold text-white leading-none">$5</span>
                 <span className="text-[15px] text-gray-400">/&nbsp;mo</span>
               </div>
-              <p className="text-[13px] text-gray-500">billed monthly \u00b7 cancel anytime</p>
+              <p className="text-[13px] text-gray-500">billed monthly &middot; cancel anytime</p>
             </div>
 
             <ul className="flex flex-col gap-3.5 mb-8 flex-1" aria-label="Pro plan features">
               {[
                 'All 3 topics \u2014 Immigration, Civil Rights, Economy',
-                'Weekly civic alerts via email',
+                'Weekly civic updates via email',
                 'Nonpartisan policy analysis',
                 'Cancel anytime, no questions asked',
               ].map((f) => (
@@ -239,44 +150,17 @@ export default function PricingPage() {
               ))}
             </ul>
 
-            {isPro ? (
-              <div className="flex flex-col gap-2">
-                {canceledUntil ? (
-                  <p className="text-center text-[13px] text-gray-400 py-2">
-                    Access until {new Date(canceledUntil).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                  </p>
-                ) : (
-                  <>
-                    <button
-                      onClick={handlePortal}
-                      disabled={checkoutLoading}
-                      className="w-full px-6 py-3.5 text-[14.5px] font-bold text-gray-950 bg-white rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50"
-                    >
-                      {checkoutLoading ? 'Loading\u2026' : 'Manage Subscription'}
-                    </button>
-                    <button
-                      onClick={() => setShowCancelDialog(true)}
-                      className="w-full px-6 py-2 text-[13px] font-medium text-gray-500 hover:text-gray-300 transition-colors"
-                    >
-                      Cancel subscription
-                    </button>
-                  </>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={handleUpgrade}
-                disabled={checkoutLoading}
-                className="w-full px-6 py-3.5 text-[14.5px] font-bold text-gray-950 bg-white rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50"
-              >
-                {checkoutLoading ? 'Loading\u2026' : 'Upgrade to Pro \u2192'}
-              </button>
-            )}
+            <Link
+              href="/local"
+              className="w-full text-center px-6 py-3.5 text-[14.5px] font-bold text-gray-950 bg-white rounded-xl hover:bg-gray-100 transition-colors"
+            >
+              Get started
+            </Link>
           </div>
         </div>
 
         <p className="text-center text-[12.5px] text-gray-400 mt-5">
-          Secure checkout via Stripe \u00b7 No credit card required for free plan
+          Secure checkout via Stripe &middot; No credit card required for free plan
         </p>
       </section>
 
@@ -328,35 +212,6 @@ export default function PricingPage() {
           </a>
         </p>
       </section>
-
-      {/* Cancel confirmation dialog */}
-      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent className="max-w-[360px]">
-          <DialogHeader>
-            <DialogTitle className="text-[18px] font-bold text-gray-950">
-              Cancel your subscription?
-            </DialogTitle>
-            <DialogDescription className="text-[14px] text-gray-500 mt-1 leading-relaxed">
-              You&apos;ll keep Pro access until the end of your current billing period. After that, your account will revert to the free plan.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-2.5 mt-4">
-            <button
-              onClick={handleCancel}
-              disabled={cancelLoading}
-              className="w-full px-6 py-3 text-[14.5px] font-bold text-white bg-gray-900 rounded-xl hover:bg-gray-700 transition-colors disabled:opacity-60"
-            >
-              {cancelLoading ? 'Canceling\u2026' : 'Yes, cancel'}
-            </button>
-            <button
-              onClick={() => setShowCancelDialog(false)}
-              className="w-full px-6 py-3 text-[14px] font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
-            >
-              Keep my subscription
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
     </div>
   );
