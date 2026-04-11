@@ -37,7 +37,12 @@ export function SubscriptionCards() {
         body: JSON.stringify({ plan }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error ?? 'Something went wrong');
+        setLoading(false);
+      }
     } catch {
       setLoading(false);
     }

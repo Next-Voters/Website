@@ -54,14 +54,14 @@ export function ManageTopics() {
 
   if (subLoading || topicsLoading) {
     return (
-      <div className="w-full min-h-[calc(100vh-56px)] bg-page flex items-center justify-center">
+      <div className="w-full bg-page flex items-center justify-center py-20">
         <p className="text-gray-400 text-[14px]">Loading…</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full min-h-[calc(100vh-56px)] bg-page flex flex-col">
+    <div className="w-full bg-page flex flex-col">
       <div className="flex-1 w-full max-w-[560px] mx-auto px-5 sm:px-6 pt-12 pb-8">
         <div className="flex items-center gap-2.5 mb-3">
           <h1 className="text-[30px] sm:text-[38px] font-bold text-gray-950 leading-tight tracking-tight">

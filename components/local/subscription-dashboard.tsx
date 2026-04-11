@@ -1,12 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 import { Mail, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useSubscription } from '@/hooks/use-subscription';
 import { ManageTopics } from '@/components/local/manage-topics';
-import { fulfillCheckout } from '@/server-actions/fulfill-checkout';
 import { sendReferralEmail } from '@/server-actions/mailer';
 import {
   Dialog,
@@ -18,11 +16,6 @@ import {
 
 export function SubscriptionDashboard() {
   const { isPro, refetch } = useSubscription();
-  const searchParams = useSearchParams();
-
-  const isPostCheckout = searchParams.get('checkout') === 'success';
-  const sessionId = searchParams.get('session_id');
-  const [verifying, setVerifying] = useState(false);
 
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -34,15 +27,6 @@ export function SubscriptionDashboard() {
   const [referralSubmitting, setReferralSubmitting] = useState(false);
   const [referralNotice, setReferralNotice] = useState<string | null>(null);
   const { user } = useAuth();
-
-  useEffect(() => {
-    if (!isPostCheckout || !sessionId) return;
-    setVerifying(true);
-    fulfillCheckout(sessionId)
-      .then((result) => { if (result.success) refetch(); })
-      .finally(() => setVerifying(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleUpgrade = async () => {
     setCheckoutLoading(true);
@@ -109,12 +93,6 @@ export function SubscriptionDashboard() {
 
   return (
     <div className="w-full min-h-[calc(100vh-56px)] bg-page flex flex-col">
-      {verifying && (
-        <div className="bg-brand/5 border-b border-brand/20 px-5 py-2.5 text-center">
-          <p className="text-[14px] text-brand font-medium">Verifying your payment…</p>
-        </div>
-      )}
-
       {/* ManageTopics handles topic selection, tier display, and upgrade prompt */}
       <ManageTopics />
 
