@@ -35,7 +35,9 @@ export function UpgradePrompt({
     try {
       const res = await fetch("/api/stripe/upgrade", { method: "POST" });
       const data = await res.json();
-      if (data.success) {
+      if (data.url) {
+        window.location.href = data.url;
+      } else if (data.success) {
         window.location.reload();
       } else {
         alert(data.error ?? "Failed to upgrade");

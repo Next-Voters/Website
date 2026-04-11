@@ -33,14 +33,17 @@ export function SubscriptionDashboard() {
     try {
       const res = await fetch('/api/stripe/upgrade', { method: 'POST' });
       const data = await res.json();
-      if (data.success) {
+      if (data.url) {
+        window.location.href = data.url;
+      } else if (data.success) {
         refetch();
+        setCheckoutLoading(false);
       } else {
         alert(data.error ?? 'Failed to upgrade');
+        setCheckoutLoading(false);
       }
     } catch {
       alert('Failed to upgrade');
-    } finally {
       setCheckoutLoading(false);
     }
   };
