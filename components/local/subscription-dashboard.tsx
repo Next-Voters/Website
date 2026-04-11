@@ -117,15 +117,7 @@ export function SubscriptionDashboard() {
             </p>
           ) : (
             <div className="flex flex-col gap-2.5">
-              {isPro ? (
-                <button
-                  onClick={handlePortal}
-                  disabled={checkoutLoading}
-                  className="inline-flex items-center justify-center min-h-[44px] px-6 py-2.5 text-[14px] font-bold text-gray-700 border border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  {checkoutLoading ? 'Loading…' : 'Manage Billing'}
-                </button>
-              ) : (
+              {!isPro && (
                 <button
                   onClick={handleUpgrade}
                   disabled={checkoutLoading}
@@ -134,6 +126,13 @@ export function SubscriptionDashboard() {
                   {checkoutLoading ? 'Loading…' : 'Upgrade to Pro — $2/mo'}
                 </button>
               )}
+              <button
+                onClick={handlePortal}
+                disabled={checkoutLoading}
+                className="inline-flex items-center justify-center min-h-[44px] px-6 py-2.5 text-[14px] font-bold text-gray-700 border border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                {checkoutLoading ? 'Loading…' : 'Manage Billing'}
+              </button>
               <button
                 onClick={() => setShowCancelDialog(true)}
                 className="text-[13px] font-medium text-gray-500 hover:text-gray-900 transition-colors py-1"
