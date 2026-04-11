@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useSubscription } from '@/hooks/use-subscription';
-import { TierBadge } from '@/components/alerts/tier-badge';
+import { TierBadge } from '@/components/local/tier-badge';
 import {
   Dialog,
   DialogContent,
@@ -184,7 +184,7 @@ export default function PricingPage() {
             </ul>
 
             <Link
-              href="/alerts"
+              href="/local"
               className="w-full text-center px-6 py-3.5 text-[14.5px] font-bold text-gray-700 border border-gray-200 rounded-xl hover:border-gray-400 hover:bg-gray-50 transition-colors"
             >
               Get started free

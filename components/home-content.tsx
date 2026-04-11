@@ -215,10 +215,10 @@ function MissionLetterSection() {
 
             <div className="mt-7">
               <a
-                href="/alerts"
+                href="/local"
                 className="inline-flex items-center justify-center min-h-[46px] px-7 py-3 text-[15px] font-semibold text-white bg-brand rounded-xl hover:bg-brand-hover transition-colors shadow-sm touch-manipulation"
               >
-                Subscribe to alerts
+                Subscribe to NV Local
               </a>
             </div>
           </div>

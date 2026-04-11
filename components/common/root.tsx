@@ -13,7 +13,7 @@ interface RootProps {
 }
 
 // Routes where the footer should not appear
-const NO_FOOTER_PATTERNS = ["/chat", "/next-voters-line", "/alerts"];
+const NO_FOOTER_PATTERNS = ["/chat", "/local"];
 
 const Root: FC<RootProps> = ({ children }) => {
   const [queryClient] = useState(

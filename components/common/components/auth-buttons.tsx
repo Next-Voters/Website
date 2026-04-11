@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/wrappers/AuthProvider";
 import { useSubscription } from "@/hooks/use-subscription";
-import { TierBadge } from "@/components/alerts/tier-badge";
+import { TierBadge } from "@/components/local/tier-badge";
 import Link from "next/link";
 
 interface AuthButtonsProps {

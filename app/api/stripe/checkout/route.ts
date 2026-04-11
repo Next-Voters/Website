@@ -47,8 +47,8 @@ export async function POST(request: NextRequest) {
         quantity: 1,
       },
     ],
-    success_url: `${origin}/alerts/interests?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/alerts/interests?checkout=cancel`,
+    success_url: `${origin}/local?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/local?checkout=cancel`,
     metadata: { contact: user.email },
     subscription_data: {
       metadata: { contact: user.email },

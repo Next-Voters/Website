@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
 import topicOptions from "@/data/topic-options";
 import { useSubscription } from "@/hooks/use-subscription";
-import { TierBadge } from "@/components/alerts/tier-badge";
-import { UpgradePrompt } from "@/components/alerts/upgrade-prompt";
+import { TierBadge } from "@/components/local/tier-badge";
+import { UpgradePrompt } from "@/components/local/upgrade-prompt";
 import { getUserTopics } from "@/server-actions/get-user-topics";
 import { updateUserTopics } from "@/server-actions/update-user-topics";
 
@@ -65,7 +65,7 @@ export function ManageTopics() {
       <div className="flex-1 w-full max-w-[560px] mx-auto px-5 sm:px-6 pt-12 pb-8">
         <div className="flex items-center gap-2.5 mb-3">
           <h1 className="text-[30px] sm:text-[38px] font-bold text-gray-950 leading-tight tracking-tight">
-            Manage your alerts
+            NV Local
           </h1>
           <TierBadge tier={tier} />
         </div>
@@ -131,7 +131,7 @@ export function ManageTopics() {
         open={showUpgrade}
         onClose={() => setShowUpgrade(false)}
         isAuthenticated={isAuthenticated}
-        redirectPath="/alerts"
+        redirectPath="/local"
       />
     </div>
   );
