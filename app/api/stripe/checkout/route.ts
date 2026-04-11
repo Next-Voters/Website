@@ -19,12 +19,24 @@ export async function POST(request: NextRequest) {
 
   const origin = request.headers.get('origin') ?? 'http://localhost:3000';
 
-  // Look up existing Stripe customer ID from subscriptions table
+  // Look up existing subscription
   const { data: subscription } = await supabase
     .from('subscriptions')
-    .select('stripe_customer_id')
+    .select('stripe_customer_id, stripe_subscription_id')
     .eq('contact', user.email)
     .maybeSingle();
+
+  // Block duplicate subscriptions — one per email
+  if (subscription?.stripe_subscription_id) {
+    try {
+      const existing = await getStripe().subscriptions.retrieve(subscription.stripe_subscription_id);
+      if (existing.status === 'active' || existing.status === 'trialing') {
+        return NextResponse.json({ error: 'You already have an active subscription. Manage it from your dashboard.' }, { status: 409 });
+      }
+    } catch {
+      // Subscription not found in Stripe — allow creating a new one
+    }
+  }
 
   let stripeCustomerId = subscription?.stripe_customer_id;
 

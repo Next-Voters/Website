@@ -33,14 +33,16 @@ export function UpgradePrompt({
 
     setLoading(true);
     try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: "pro" }),
-      });
+      const res = await fetch("/api/stripe/upgrade", { method: "POST" });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.success) {
+        window.location.reload();
+      } else {
+        alert(data.error ?? "Failed to upgrade");
+        setLoading(false);
+      }
     } catch {
+      alert("Failed to upgrade");
       setLoading(false);
     }
   };

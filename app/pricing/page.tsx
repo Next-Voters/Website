@@ -94,13 +94,19 @@ export default function PricingPage() {
     }
     setCheckoutLoading(true);
     try {
-      const res = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'pro' }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      // If user already has a subscription, upgrade in-place; otherwise redirect to /local
+      if (tier !== 'none') {
+        const res = await fetch('/api/stripe/upgrade', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = '/local';
+        } else {
+          alert(data.error ?? 'Failed to upgrade');
+          setCheckoutLoading(false);
+        }
+      } else {
+        window.location.href = '/local';
+      }
     } catch {
       setCheckoutLoading(false);
     }
