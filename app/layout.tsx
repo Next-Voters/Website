@@ -25,8 +25,7 @@ const dancingScript = Dancing_Script({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Next Voters | Civic Education & Policy Analysis',
-    template: '%s | Next Voters',
+    default: 'Next Voters',
   },
   description:
     'Next Voters helps students and young voters understand legislation, public policy, and North American politics through clear summaries and nonpartisan analysis. Get free civic education and policy alerts.',
@@ -46,7 +45,7 @@ export const metadata: Metadata = {
     'civic alerts',
   ],
 
-  authors: [{ name: 'Next Voters' }],
+  authors: [{ name: 'Hemit Patel' }, { name: 'Krishiv Thakuria' }],
   creator: 'Next Voters',
   robots: {
     index: true,
@@ -58,7 +57,7 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: 'Next Voters | Civic Education & Policy Analysis',
+    title: 'Next Voters',
     description:
       'Understand legislation and public policy with clear summaries built for students and everyday voters. Subscribe to free civic alerts.',
     type: 'website',
