@@ -185,68 +185,6 @@ function PillarsSection() {
   );
 }
 
-function MissionLetterSection() {
-  return (
-    <section className="relative py-16 sm:py-20 overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-page via-amber-50/20 to-red-50/20"
-      />
-      <div className="relative max-w-[660px] mx-auto px-5 sm:px-6">
-        <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="h-1.5 w-full bg-gradient-to-r from-brand via-red-400 to-amber-400" />
-          <div className="px-7 sm:px-10 py-10">
-            <div className="space-y-4 text-[15.5px] text-gray-700 leading-[1.8]">
-              <p>
-                Young voters deserve to understand policy and legislation without wading through jargon or partisan spin.
-                We built Next Voters to give the next generation the tools to cut through the noise: clear, AI-powered
-                answers to civic questions, grounded in facts.
-              </p>
-              <p>
-                Our goal is simple: help students and first-time voters feel confident, informed, and ready to
-                participate in democracy. Technology should empower civic engagement, not overwhelm it.
-              </p>
-              <p>
-                Gen Z spends nearly three hours a day on social media, much of it scrolling past election-related
-                content that is often unverified and designed to maximize engagement rather than understanding. The gap
-                between confidence and skill is widening dangerously.
-              </p>
-              <p>
-                We believe every citizen should be able to ask a question about policy and get a straight answer. Not a
-                partisan take. Not a wall of legalese. Just clarity.
-              </p>
-              <p>
-                Civic education shouldn't be a luxury. It should be as accessible as opening an app and typing a
-                question. That's the world we're building toward.
-              </p>
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <img
-                src="/profile-pics/krishiv-thakuria.png"
-                alt="Krishiv Thakuria"
-                className="w-12 h-12 rounded-full object-cover border-2 border-gray-100 shrink-0"
-              />
-              <div>
-                <p className="font-signature text-2xl text-gray-900">Krishiv Thakuria</p>
-                <p className="text-[13px] text-gray-500 mt-0.5">President, Next Voters</p>
-              </div>
-            </div>
-
-            <div className="mt-7">
-              <a
-                href="/local"
-                className="inline-flex items-center justify-center min-h-[46px] px-7 py-3 text-[15px] font-semibold text-white bg-gradient-to-r from-brand to-red-500 rounded-xl hover:opacity-90 transition-opacity shadow-sm touch-manipulation"
-              >
-                Subscribe to NV Local
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 const heroStat = {
   number: "87%",
@@ -440,7 +378,6 @@ export default function HomeContent() {
         <SupportersSection />
         <TestimonialSection />
         <PillarsSection />
-        <MissionLetterSection />
         <StatsSection />
       </div>
     </ClientMountWrapper>
