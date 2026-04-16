@@ -1,33 +1,48 @@
 "use client";
 
-import { signIn, signOut, useSession } from "@/lib/auth-client";
+import { useAuth } from "@/wrappers/AuthProvider";
+import { useSubscription } from "@/hooks/use-subscription";
+import { TierBadge } from "@/components/local/tier-badge";
+import Link from "next/link";
 
 interface AuthButtonsProps {
-  variant: "desktop" | "mobile"
+  variant: "desktop" | "mobile";
 }
 
 export default function AuthButtons({ variant = "desktop" }: AuthButtonsProps) {
-  const { data: session, isPending } = useSession();
+  const { user, isLoading, signOut } = useAuth();
+  const { tier } = useSubscription();
 
-  if (isPending) {
+  if (isLoading) return null;
+
+  if (!user) {
     return (
-      <div className="inline-flex items-center justify-center">
-        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </div>
+      <Link
+        href="/login"
+        className={[
+          "font-semibold text-[13.5px] text-gray-600 hover:text-gray-900 transition-colors",
+          variant === "mobile" ? "block py-2" : "",
+        ].join(" ")}
+      >
+        Log in
+      </Link>
     );
   }
 
-  const base = "inline-flex items-center justify-center rounded font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400";
-  const desktop = "px-4 py-2 text-sm bg-gray-900 text-white hover:bg-gray-800";
-  const mobile = "w-full justify-start px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded";
-  const className = `${base} ${variant === "desktop" ? desktop : mobile}`;
+  const initial = user.email?.[0]?.toUpperCase() ?? "U";
 
-  return session ? (
-    <button onClick={() => signOut()} className={className}>Sign Out</button>
-  ) : (
-    <button onClick={() => signIn.social({ provider: "google" })} className={className}>Sign In</button>
+  return (
+    <div className={`flex items-center gap-3 ${variant === "mobile" ? "py-2" : ""}`}>
+      <div className="w-7 h-7 rounded-full bg-gray-900 text-white flex items-center justify-center text-[12px] font-bold">
+        {initial}
+      </div>
+      <TierBadge tier={tier} />
+      <button
+        onClick={signOut}
+        className="font-semibold text-[13.5px] text-gray-500 hover:text-gray-900 transition-colors"
+      >
+        Sign out
+      </button>
+    </div>
   );
 }

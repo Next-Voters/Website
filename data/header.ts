@@ -15,12 +15,12 @@ const headerItems: HeaderItem[] = [{
     href: "/blog"
 }, 
 {
-    name: "Alerts",
-    href: "/civic-line"
+    name: "Local",
+    href: "/local"
 },
 {
-    name: "Mission",
-    href: "/#mission"
+    name: "Pricing",
+    href: "/pricing"
 }
 ]
 

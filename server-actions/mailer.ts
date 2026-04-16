@@ -15,12 +15,12 @@ const escapeHtml = (input: string): string => {
 export const sendReferralEmail = async (referrerEmail: string, referredEmail: string) => {
   const subject = `Your friend (${referrerEmail}) wants you to check this out`;
 
-  const signupUrl = "https://nextvoters.com/civic-line";
+  const signupUrl = "https://nextvoters.com/local";
 
   const text = [
     "Hi,",
     "",
-    `Your friend with the email ${referrerEmail} is referring you to sign up for the Next Voters Line, a free, bias-free way to get emailed weekly summaries of the NYC politics you care about.`,
+    `Your friend with the email ${referrerEmail} is referring you to sign up for the NV Local, a free, bias-free way to get emailed weekly summaries about your local politics.`,
     "",
     "No pressure, but you can sign up here in 30 seconds to see what the hype is about.",
     "",
@@ -31,7 +31,7 @@ export const sendReferralEmail = async (referrerEmail: string, referredEmail: st
   const html = `
     <p>Hi,</p>
     <p>
-      Your friend with the email <strong>${escapeHtml(referrerEmail)}</strong> is referring you to sign up for the Next Voters Line, a free, bias-free way to get emailed weekly summaries of the NYC politics you care about.
+      Your friend with the email <strong>${escapeHtml(referrerEmail)}</strong> is referring you to sign up for the NV Local, a free, bias-free way to get emailed weekly summaries about your local politics.
     </p>
     <p>
       No pressure, but you can sign up <a href="${signupUrl}">here</a> for a week in 30 seconds to see what the hype is about.
@@ -39,7 +39,7 @@ export const sendReferralEmail = async (referrerEmail: string, referredEmail: st
   `;
 
   await transporter.sendMail({
-    from: `Next Voters Line <${process.env.EMAIL_USER}>`,
+    from: `NV Local <${process.env.EMAIL_USER}>`,
     to: referredEmail,
     subject,
     text,
@@ -56,7 +56,7 @@ export const sendConfirmationEmail = async (email: string, preferredCategories: 
 
   const html = `
     <div>
-      <p>Thank you for signing up to Next Voters Line!</p>
+      <p>Thank you for signing up to NV Local!</p>
       <p>As a bonus, here's the most recent summary:</p>
       <ul>
         ${preferredCategories.map(category => `<li>${category}</li>`).join("")}
@@ -65,7 +65,7 @@ export const sendConfirmationEmail = async (email: string, preferredCategories: 
   `;
 
   await transporter.sendMail({
-    from: `Next Voters Line <${process.env.EMAIL_USER}>`,
+    from: `NV Local <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Confirmation Email",
     html,
