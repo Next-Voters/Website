@@ -1,18 +1,26 @@
 "use server";
 
 import { transporter } from "@/lib/nodemailer";
+import { convertReferral } from "@/server-actions/referrals";
 
 export async function submitRegionWaitlist(input: {
   country: string;
   state: string;
   city: string;
+  referralCode?: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const country = input.country?.trim();
   const state = input.state?.trim();
   const city = input.city?.trim();
+  const referralCode = input.referralCode?.trim();
 
   if (!country || !city) {
     return { ok: false, error: "Please choose a country and city." };
+  }
+
+  // If the visitor arrived via a referral link, upgrade the referral status
+  if (referralCode) {
+    await convertReferral(referralCode, "", { country, state: state || "\u2014", city });
   }
 
   const lines = [
@@ -21,6 +29,7 @@ export async function submitRegionWaitlist(input: {
     `Country: ${country}`,
     `State / province: ${state || "—"}`,
     `City: ${city}`,
+    ...(referralCode ? [`Referral code: ${referralCode}`] : []),
   ];
 
   const user = process.env.EMAIL_USER;

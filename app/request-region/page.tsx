@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Country, State, City } from "country-state-city";
 import type { IState, ICity } from "country-state-city";
 import { submitRegionWaitlist } from "@/server-actions/request-region";
+import { trackReferralClick } from "@/server-actions/referrals";
 
 const selectClass =
   "w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-[14.5px] font-semibold text-gray-900 " +
@@ -47,8 +49,10 @@ function matchCityName(cities: ICity[], city?: string): string | undefined {
   return partial?.name;
 }
 
-export default function RequestRegionPage() {
+function RequestRegionForm() {
   const countries = useMemo(() => sortByName(Country.getAllCountries()), []);
+  const searchParams = useSearchParams();
+  const refCode = searchParams.get("ref");
 
   const [countryIso, setCountryIso] = useState("");
   const [stateCode, setStateCode] = useState("");
@@ -59,6 +63,15 @@ export default function RequestRegionPage() {
   const [error, setError] = useState<string | null>(null);
 
   const userEditedRef = useRef(false);
+  const referralTrackedRef = useRef(false);
+
+  // Track referral click
+  useEffect(() => {
+    if (refCode && !referralTrackedRef.current) {
+      referralTrackedRef.current = true;
+      trackReferralClick(refCode).catch(() => {});
+    }
+  }, [refCode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -168,6 +181,7 @@ export default function RequestRegionPage() {
         country: countryLabel,
         state: stateLabel || "—",
         city: cityName.trim(),
+        referralCode: refCode || undefined,
       });
       if (result.ok === false) {
         setError(result.error);
@@ -300,5 +314,13 @@ export default function RequestRegionPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function RequestRegionPage() {
+  return (
+    <Suspense>
+      <RequestRegionForm />
+    </Suspense>
   );
 }

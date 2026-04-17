@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { Mail, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, CheckCircle2, Link2, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useSubscription } from '@/hooks/use-subscription';
 import { ManageTopics } from '@/components/local/manage-topics';
-import { sendReferralEmail } from '@/server-actions/mailer';
+import { createReferral, getOrCreateReferralCode, getReferralStats } from '@/server-actions/referrals';
+import { buildReferralLink } from '@/lib/referral';
 import {
   Dialog,
   DialogContent,
@@ -26,7 +27,26 @@ export function SubscriptionDashboard() {
   const [referralEmail, setReferralEmail] = useState('');
   const [referralSubmitting, setReferralSubmitting] = useState(false);
   const [referralNotice, setReferralNotice] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralLink, setReferralLink] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [stats, setStats] = useState<{
+    totalReferrals: number;
+    totalClicked: number;
+    totalConverted: number;
+    kFactor: number;
+  } | null>(null);
   const { user } = useAuth();
+
+  // Load referral code and stats
+  useEffect(() => {
+    if (!user?.email) return;
+    getOrCreateReferralCode(user.email).then((code) => {
+      setReferralCode(code);
+      setReferralLink(buildReferralLink(code));
+    });
+    getReferralStats(user.email).then(setStats);
+  }, [user?.email]);
 
   const handleUpgrade = async () => {
     setCheckoutLoading(true);
@@ -82,9 +102,11 @@ export function SubscriptionDashboard() {
     if (!user?.email) return;
     setReferralSubmitting(true);
     try {
-      await sendReferralEmail(user.email, trimmed);
+      await createReferral(user.email, trimmed);
       setReferralNotice('Referral sent!');
       setReferralEmail('');
+      // Refresh stats
+      getReferralStats(user.email).then(setStats);
       setTimeout(() => setReferralNotice(null), 3000);
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Unknown error';
@@ -92,6 +114,13 @@ export function SubscriptionDashboard() {
     } finally {
       setReferralSubmitting(false);
     }
+  };
+
+  const handleCopyLink = () => {
+    if (!referralLink) return;
+    navigator.clipboard.writeText(referralLink);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   return (
@@ -149,8 +178,34 @@ export function SubscriptionDashboard() {
             Refer a friend
           </p>
           <p className="text-[13px] text-gray-500 mb-4">
-            Send a friend an invite and you'll be considered for future deals.
+            Share your referral link or send an invite email.
           </p>
+
+          {/* Referral link */}
+          {referralLink && (
+            <div className="flex items-stretch gap-2.5 max-w-[400px] mb-4">
+              <div className="flex-1 flex items-stretch border border-gray-200 rounded-xl overflow-hidden bg-white">
+                <div className="flex items-center justify-center px-3 border-r border-gray-200 bg-gray-50">
+                  <Link2 className="h-4 w-4 text-gray-400" aria-hidden="true" />
+                </div>
+                <input
+                  className="flex-1 min-w-0 px-3 py-2.5 text-[13px] text-gray-600 bg-transparent focus:outline-none"
+                  type="text"
+                  readOnly
+                  value={referralLink}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="px-4 py-2.5 text-[13px] font-bold text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors shrink-0"
+              >
+                {linkCopied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+          )}
+
+          {/* Email referral */}
           <div className="flex items-stretch gap-2.5 max-w-[400px]">
             <div className="flex-1 flex items-stretch border border-gray-200 rounded-xl overflow-hidden bg-white">
               <div className="flex items-center justify-center px-3 border-r border-gray-200 bg-gray-50">
@@ -179,6 +234,19 @@ export function SubscriptionDashboard() {
             <div className="mt-2.5 flex items-center gap-1.5 text-[13px] text-green-700 font-semibold">
               <CheckCircle2 className="w-4 h-4" />
               {referralNotice}
+            </div>
+          )}
+
+          {/* Referral stats */}
+          {stats && stats.totalReferrals > 0 && (
+            <div className="mt-5 flex items-center gap-4">
+              <Users className="h-4 w-4 text-gray-400" />
+              <div className="flex gap-4 text-[12px] text-gray-500">
+                <span><strong className="text-gray-900">{stats.totalReferrals}</strong> sent</span>
+                <span><strong className="text-gray-900">{stats.totalClicked}</strong> clicked</span>
+                <span><strong className="text-gray-900">{stats.totalConverted}</strong> signed up</span>
+                <span>K-factor: <strong className="text-brand">{(stats.kFactor * 100).toFixed(0)}%</strong></span>
+              </div>
             </div>
           )}
         </div>
