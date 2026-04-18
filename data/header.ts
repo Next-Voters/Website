@@ -1,9 +1,15 @@
 import { HeaderItem } from "@/lib/header"
 
-const headerItems: HeaderItem[] = [{
+const headerItems: HeaderItem[] = [
+{
     name: "Home",
     href: "/"
-}, {
+},
+{
+    name: "Local",
+    href: "/local"
+},
+{
     name: "Chat",
     href: "/chat"
 }, {
@@ -13,10 +19,6 @@ const headerItems: HeaderItem[] = [{
 {
     name: "Blog",
     href: "/blog"
-}, 
-{
-    name: "Local",
-    href: "/local"
 },
 {
     name: "Pricing",
