@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog';
 
 export function SubscriptionDashboard() {
-  const { isPro, refetch } = useSubscription();
+  const { isPro, hasSubscription, refetch } = useSubscription();
 
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -162,12 +162,14 @@ export function SubscriptionDashboard() {
               >
                 {checkoutLoading ? 'Loading…' : 'Manage Billing'}
               </button>
-              <button
-                onClick={() => setShowCancelDialog(true)}
-                className="text-[13px] font-medium text-gray-500 hover:text-gray-900 transition-colors py-1"
-              >
-                Cancel subscription
-              </button>
+              {hasSubscription && (
+                <button
+                  onClick={() => setShowCancelDialog(true)}
+                  className="text-[13px] font-medium text-gray-500 hover:text-gray-900 transition-colors py-1"
+                >
+                  Cancel subscription
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -260,7 +262,7 @@ export function SubscriptionDashboard() {
               Cancel your subscription?
             </DialogTitle>
             <DialogDescription className="text-[14px] text-gray-500 mt-1 leading-relaxed">
-              You&apos;ll keep Pro access until the end of your current billing period. After that, your account will revert to the free plan.
+              You&apos;ll keep access until the end of your current billing period. After that, your account will revert to the free plan.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2.5 mt-4">

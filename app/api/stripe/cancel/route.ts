@@ -10,26 +10,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data: subscription } = await supabase
-    .from('subscriptions')
-    .select('stripe_subscription_id')
-    .eq('contact', user.email)
-    .maybeSingle();
+  const stripe = getStripe();
 
-  if (!subscription?.stripe_subscription_id) {
+  // Look up customer and active subscription via Stripe SDK
+  const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+  const customer = customers.data[0];
+
+  if (!customer) {
+    return NextResponse.json({ error: 'No active subscription found' }, { status: 404 });
+  }
+
+  const subscriptions = await stripe.subscriptions.list({
+    customer: customer.id,
+    status: 'active',
+    limit: 1,
+  });
+
+  const subscription = subscriptions.data[0];
+
+  if (!subscription) {
     return NextResponse.json({ error: 'No active subscription found' }, { status: 404 });
   }
 
   try {
-    const updated = await getStripe().subscriptions.update(
-      subscription.stripe_subscription_id,
-      { cancel_at_period_end: true }
-    );
-
-    await supabase
-      .from('subscriptions')
-      .update({ stripe_status: 'canceling' })
-      .eq('contact', user.email);
+    const updated = await stripe.subscriptions.update(subscription.id, {
+      cancel_at_period_end: true,
+    });
 
     // cancel_at is set by Stripe when cancel_at_period_end is true
     const periodEnd = updated.cancel_at
