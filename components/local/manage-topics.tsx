@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Globe } from "lucide-react";
 import topicOptions from "@/data/topic-options";
 import { useSubscription } from "@/hooks/use-subscription";
 import { TierBadge } from "@/components/local/tier-badge";
 import { getUserTopics } from "@/server-actions/get-user-topics";
 import { updateUserTopics } from "@/server-actions/update-user-topics";
+import { getSupportedCities, getUserCity } from "@/server-actions/get-supported-cities";
+import { updateUserCity } from "@/server-actions/update-user-city";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function ManageTopics() {
   const { isPro, isLoading: subLoading, tier } = useSubscription();
@@ -16,6 +19,14 @@ export function ManageTopics() {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
   const [topicsLoading, setTopicsLoading] = useState(true);
+
+  const [cities, setCities] = useState<string[]>([]);
+  const [selectedCity, setSelectedCity] = useState("");
+
+  useEffect(() => {
+    getSupportedCities().then(setCities);
+    getUserCity().then((city) => { if (city) setSelectedCity(city); });
+  }, []);
 
   useEffect(() => {
     if (subLoading) return;
@@ -43,12 +54,16 @@ export function ManageTopics() {
   const handleSave = async () => {
     setSaving(true);
     setSavedMsg("");
-    const result = await updateUserTopics(selected);
+    const [topicResult, cityResult] = await Promise.all([
+      updateUserTopics(selected),
+      selectedCity ? updateUserCity(selectedCity) : Promise.resolve({} as { error?: string }),
+    ]);
     setSaving(false);
-    if (result.error) {
-      setSavedMsg(result.error);
+    const error = topicResult.error || cityResult.error;
+    if (error) {
+      setSavedMsg(error);
     } else {
-      setSavedMsg("Topics saved!");
+      setSavedMsg("Saved!");
     }
   };
 
@@ -75,6 +90,31 @@ export function ManageTopics() {
             : "Select 1 topic. Upgrade to Pro for all 3."}
         </p>
 
+        {/* City selector */}
+        <div className="mb-8">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+            Region
+          </p>
+          <div className="flex items-center gap-3">
+            <Globe className="h-4 w-4 text-gray-400 shrink-0" />
+            <Select value={selectedCity} onValueChange={setSelectedCity}>
+              <SelectTrigger className="w-full sm:w-[240px] bg-white border border-gray-200 text-gray-900 text-[14px] rounded-xl min-h-[44px]">
+                <SelectValue placeholder="Select your city" />
+              </SelectTrigger>
+              <SelectContent className="bg-white text-gray-900 border border-gray-200 z-[50]">
+                {cities.map((city) => (
+                  <SelectItem key={city} value={city} className="hover:bg-gray-100 focus:bg-gray-100">
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+          Topics
+        </p>
         <div className="flex flex-wrap gap-2.5 mb-6">
           {topicOptions.map((topic) => {
             const isActive = selected.includes(topic);
