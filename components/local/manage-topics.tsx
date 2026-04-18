@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Globe } from "lucide-react";
+import { Check, Globe, Languages } from "lucide-react";
 import topicOptions from "@/data/topic-options";
 import { useSubscription } from "@/hooks/use-subscription";
 import { TierBadge } from "@/components/local/tier-badge";
@@ -9,6 +9,8 @@ import { getUserTopics } from "@/server-actions/get-user-topics";
 import { updateUserTopics } from "@/server-actions/update-user-topics";
 import { getSupportedCities, getUserCity } from "@/server-actions/get-supported-cities";
 import { updateUserCity } from "@/server-actions/update-user-city";
+import { getSupportedLanguages, getUserLanguage } from "@/server-actions/get-supported-languages";
+import { updateUserLanguage } from "@/server-actions/update-user-language";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export function ManageTopics() {
@@ -22,10 +24,14 @@ export function ManageTopics() {
 
   const [cities, setCities] = useState<string[]>([]);
   const [selectedCity, setSelectedCity] = useState("");
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState("");
 
   useEffect(() => {
     getSupportedCities().then(setCities);
     getUserCity().then((city) => { if (city) setSelectedCity(city); });
+    getSupportedLanguages().then(setLanguages);
+    getUserLanguage().then((lang) => { if (lang) setSelectedLanguage(lang); });
   }, []);
 
   useEffect(() => {
@@ -54,12 +60,13 @@ export function ManageTopics() {
   const handleSave = async () => {
     setSaving(true);
     setSavedMsg("");
-    const [topicResult, cityResult] = await Promise.all([
+    const [topicResult, cityResult, langResult] = await Promise.all([
       updateUserTopics(selected),
       selectedCity ? updateUserCity(selectedCity) : Promise.resolve({} as { error?: string }),
+      selectedLanguage ? updateUserLanguage(selectedLanguage) : Promise.resolve({} as { error?: string }),
     ]);
     setSaving(false);
-    const error = topicResult.error || cityResult.error;
+    const error = topicResult.error || cityResult.error || langResult.error;
     if (error) {
       setSavedMsg(error);
     } else {
@@ -105,6 +112,28 @@ export function ManageTopics() {
                 {cities.map((city) => (
                   <SelectItem key={city} value={city} className="hover:bg-gray-100 focus:bg-gray-100">
                     {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Language selector */}
+        <div className="mb-8">
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+            Preferred Language
+          </p>
+          <div className="flex items-center gap-3">
+            <Languages className="h-4 w-4 text-gray-400 shrink-0" />
+            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+              <SelectTrigger className="w-full sm:w-[240px] bg-white border border-gray-200 text-gray-900 text-[14px] rounded-xl min-h-[44px]">
+                <SelectValue placeholder="Select your language" />
+              </SelectTrigger>
+              <SelectContent className="bg-white text-gray-900 border border-gray-200 z-[50]">
+                {languages.map((lang) => (
+                  <SelectItem key={lang} value={lang} className="hover:bg-gray-100 focus:bg-gray-100">
+                    {lang}
                   </SelectItem>
                 ))}
               </SelectContent>
